@@ -6,13 +6,13 @@
 <meta name="theme-color" content="#F5F6F2">
 <title>Qortex — Study Smarter. Focus Deeper.</title>
 
-<!-- DM Sans Font -->
+<!-- خط DM Sans -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&display=swap" rel="stylesheet">
 
-<!-- Default Apple Icon (Will be updated by JS) -->
-<link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxOTIgMTkyIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMTAwJSIgeTI9IjEwMCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiM4MjlkODciLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiM1MjZiNTkiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiIgcng9IjQyIiBmaWxsPSJ1cmwoI2cpIi8+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoOTYsOTYpIj48Y2lyY2xlIHI9IjM2IiBmaWxsPSJub25lIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjEwIi8+PHBhdGggZD0iTTIyIDIyIEw0MCA0MCIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLXdpZHRoPSIxMCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PC9nPjwvc3ZnPg==">
+<!-- الأيقونة الخاصة بالآيفون (هتتحدث أوتوماتيك باللوجو الجديد) -->
+<link rel="apple-touch-icon" href="https://i.postimg.cc/7Z81NTtw/image.png">
 
 <style>
 /* =========================================================
@@ -290,9 +290,8 @@ a { color: inherit; text-decoration: none; }
   <!-- SIDEBAR -->
   <aside class="sidebar">
     <div class="sidebar-brand">
-      <div class="brand-logo" id="brandLogoContainer">
-        <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
-      </div>
+      <!-- هنا بيتم استدعاء اللوجو من JS -->
+      <div class="brand-logo" id="brandLogoContainer"></div>
       <div>
         <h1>Qortex</h1>
         <div class="tagline">Study Smarter. Focus Deeper.</div>
@@ -412,15 +411,13 @@ a { color: inherit; text-decoration: none; }
       </div>
     </section>
 
-    <!-- THEMES (NEW) -->
+    <!-- THEMES -->
     <section class="page" id="page-themes">
       <div class="page-header">
         <h2 class="page-title">Appearance</h2>
         <p class="page-subtitle">Customize the look and feel of Qortex</p>
       </div>
-      <div class="themes-grid" id="themesGrid">
-        <!-- Themes injected via JS -->
-      </div>
+      <div class="themes-grid" id="themesGrid"></div>
     </section>
 
     <!-- INSPIRATION -->
@@ -660,7 +657,6 @@ function startTimer() {
     else {
       clearInterval(t.interval); t.running = false; updateTimerDisplay();
       toast("Session Complete! Great job.");
-      // Save session logic here (simplified for v1.0)
       if (!state.data[today()]) state.data[today()] = { minutes: 0, sessions: 0 };
       state.data[today()].minutes += Math.round(t.totalSeconds / 60);
       state.data[today()].sessions += 1;
@@ -853,11 +849,15 @@ function init() {
   $("setShort").value = state.settings.short;
   $("setLong").value = state.settings.long;
 
-  // !!! ضع رابط صورتك هنا !!!
-  // يمكنك رفع الصورة على موقع مثل imgbb وحط الرابط المباشر بدل الـ Link ده
-  const customIconUrl = ""; // ضع الرابط هنا
+  // ========================================================
+  // ✅ تم وضع اللوجو بتاعك هنا
+  // ========================================================
+  const customIconUrl = "https://i.postimg.cc/7Z81NTtw/image.png";
+  
   if (customIconUrl) {
+    // تغيير اللوجو في القائمة الجانبية
     $("brandLogoContainer").innerHTML = `<img src="${customIconUrl}" alt="Logo">`;
+    // تغيير أيقونة التطبيق
     document.querySelector('link[rel="apple-touch-icon"]').href = customIconUrl;
   }
 }
