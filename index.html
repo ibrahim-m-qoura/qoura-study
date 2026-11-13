@@ -1,415 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#f2f5f1">
+<title>Qoura Study</title>
 
-// TIMER DISPLAY
-function updateTimerDisplay() {
-  const mins = Math.floor(remaining / 60);
-  const secs = remaining % 60;
+<style>
+:root{
+--bg:#f2f5f1;
+--surface:rgba(255,255,255,.65);
+--text:#26352d;
+--muted:#87948b;
+--accent:#829d87;
+--border:rgba(255,255,255,.8);
+--shadow:0 12px 40px rgba(49,70,55,.07);
+}
+*{box-sizing:border-box}
+body{
+margin:0;padding:22px 14px 40px;min-height:100vh;
+font-family:system-ui,-apple-system,sans-serif;
+color:var(--text);
+background:
+radial-gradient(circle at 10% 5%,#dce9df 0,transparent 32%),
+radial-gradient(circle at 90% 30%,#e5e9f1 0,transparent 30%),
+var(--bg);
+}
+button,input,select{font:inherit}
+button{cursor:pointer}
+.app{max-width:850px;margin:auto}
+header{display:flex;justify-content:space-between;align-items:center;margin-bottom:25px}
+.brand{display:flex;align-items:center;gap:11px}
+.logo{
+width:44px;height:44px;border-radius:15px;
+display:grid;place-items:center;background:var(--accent);
+color:white;font-size:25px;font-weight:700
+}
+h1{font-size:21px;margin:0}
+.subtitle{font-size:12px;color:var(--muted);margin-top:3px}
+.glass{
+background:var(--surface);
+border:1px solid var(--border);
+backdrop-filter:blur(22px);
+-webkit-backdrop-filter:blur(22px);
+border-radius:23px;box-shadow:var(--shadow)
+}
+.theme-btn,.secondary{
+border:1px solid var(--border);
+background:var(--surface);color:var(--text);
+border-radius:14px;padding:11px 15px
+}
+.welcome{margin:25px 0 18px}
+.welcome h2{font-size:23px;margin:0 0 5px}
+.welcome p{font-size:13px;color:var(--muted);margin:0}
+.section-title{font-size:16px;font-weight:650;margin:26px 0 13px}
+.timer-card{text-align:center;padding:24px 17px}
+.tabs{display:flex;justify-content:center;gap:8px;margin-bottom:22px;flex-wrap:wrap}
+.tab{
+border:0;border-radius:30px;padding:9px 16px;
+background:rgba(130,157,135,.12);color:var(--muted)
+}
+.tab.active{background:var(--accent);color:white}
+select,input{
+color:var(--text);background:rgba(255,255,255,.55);
+border:1px solid var(--border);border-radius:12px;
+padding:11px 13px;outline:none
+}
+.timer{font-size:clamp(65px,17vw,100px);font-weight:650;
+letter-spacing:-5px;font-variant-numeric:tabular-nums;line-height:1.2;margin:10px 0}
+.timer-label{color:var(--muted);font-size:13px}
+.progress{height:6px;max-width:300px;margin:20px auto;background:rgba(130,157,135,.15);border-radius:10px;overflow:hidden}
+.progress-fill{height:100%;width:0;background:var(--accent);transition:width .3s}
+.controls{display:flex;justify-content:center;gap:9px;margin:20px 0 5px;flex-wrap:wrap}
+.primary{border:0;background:var(--accent);color:white;border-radius:14px;padding:13px 28px;min-width:125px;font-weight:600}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:11px}
+.stat{padding:16px 12px}
+.stat-label{font-size:12px;color:var(--muted)}
+.stat-value{font-size:25px;font-weight:650;margin-top:7px;overflow-wrap:anywhere}
+.stat-unit{font-size:11px;color:var(--muted);margin-top:3px}
+.goal-card,.settings-card,.tasks-card,.chart-card,.subjects-card{padding:18px}
+.goal-top{display:flex;justify-content:space-between;gap:10px}
+.goal-number{font-size:13px;color:var(--muted)}
+.goal-track{height:9px;border-radius:10px;background:rgba(130,157,135,.15);margin-top:15px;overflow:hidden}
+.goal-fill{height:100%;width:0;background:var(--accent);transition:width .3s}
+.settings-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.settings-grid label{font-size:12px;color:var(--muted)}
+.settings-grid input{width:100%;margin-top:7px}
+.task-form{display:flex;gap:8px;margin-bottom:12px}
+.task-form input{min-width:0;flex:1}
+.task-form button{border:0;border-radius:12px;padding:0 17px;background:var(--accent);color:white}
+.task{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--border)}
+.task:last-child{border:0}
+.task span{flex:1;overflow-wrap:anywhere}
+.task.done span{text-decoration:line-through;color:var(--muted)}
+.delete-task{border:0;background:transparent;color:var(--muted);font-size:20px}
+.chart-header{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.chart-header strong{font-size:15px}
+.range-tabs{display:flex;gap:5px}
+.range-btn{
+border:0;border-radius:20px;padding:7px 12px;
+background:rgba(130,157,135,.12);color:var(--muted);font-size:12px
+}
+.range-btn.active{background:var(--accent);color:white}
+.chart-summary{margin:17px 0 5px}
+.chart-total{font-size:28px;font-weight:700}
+.chart-caption{font-size:12px;color:var(--muted)}
+.chart-wrap{width:100%;overflow:hidden;margin-top:10px}
+svg{width:100%;height:auto;overflow:visible}
+.chart-grid{stroke:var(--border);stroke-width:1}
+.chart-line{fill:none;stroke:var(--accent);stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+.chart-area{fill:rgba(130,157,135,.12)}
+.chart-dot{fill:var(--accent);stroke:var(--surface);stroke-width:3}
+.chart-label{fill:var(--muted);font-size:10px}
+.legend{display:flex;justify-content:center;gap:17px;color:var(--muted);font-size:11px;margin-top:10px}
+.subject-row{margin-top:17px}
+.subject-top{display:flex;justify-content:space-between;font-size:13px;gap:8px}
+.subject-track{height:7px;background:rgba(130,157,135,.13);border-radius:10px;margin-top:8px;overflow:hidden}
+.subject-fill{height:100%;background:var(--accent);border-radius:10px}
+.empty{text-align:center;padding:25px;color:var(--muted);font-size:13px}
+footer{text-align:center;color:var(--muted);font-size:11px;margin-top:30px}
+body.dark{
+--bg:#17211c;--surface:rgba(40,55,46,.75);
+--text:#edf3ed;--muted:#a0afa4;
+--accent:#91b49a;--border:rgba(255,255,255,.09);
+--shadow:0 12px 40px rgba(0,0,0,.15)
+}
+body.dark select,body.dark input{background:rgba(255,255,255,.07);color:var(--text)}
+@media(max-width:480px){
+body{padding:17px 11px 30px}
+.stats{gap:7px}.stat{padding:13px 9px}
+.stat-value{font-size:21px}
+.settings-grid{gap:6px}
+.settings-grid input{padding:9px 6px}
+}
+</style>
+</head>
 
-  $("timer").textContent =
-    String(mins).padStart(2, "0") + ":" +
-    String(secs).padStart(2, "0");
+<body>
+<div class="app">
 
-  const progress = total > 0
-    ? ((total - remaining) / total) * 100
-    : 0;
+<header>
+<div class="brand">
+<div class="logo">Q</div>
+<div>
+<h1>Qoura Study</h1>
+<div class="subtitle">Focus. Learn. Grow.</div>
+</div>
+</div>
+<button class="theme-btn" id="themeBtn">☾ Theme</button>
+</header>
 
-  $("progressFill").style.width = progress + "%";
+<div class="welcome">
+<h2>Your study space</h2>
+<p>Small steps every day lead to big achievements.</p>
+</div>
+
+<section class="glass timer-card">
+<div class="tabs">
+<button class="tab active" data-mode="focus">Focus</button>
+<button class="tab" data-mode="short">Short break</button>
+<button class="tab" data-mode="long">Long break</button>
+</div>
+
+<div style="margin-bottom:15px">
+<select id="subject">
+<option>Medicine</option>
+<option>Reading</option>
+<option>Languages</option>
+<option>Other</option>
+</select>
+</div>
+
+<div class="timer" id="timer">25:00</div>
+<div class="timer-label" id="timerLabel">Time to focus</div>
+<div class="progress"><div class="progress-fill" id="progressFill"></div></div>
+
+<div class="controls">
+<button class="primary" id="startBtn">Start</button>
+<button class="secondary" id="resetBtn">Reset</button>
+<button class="secondary" id="skipBtn">Skip</button>
+</div>
+</section>
+
+<h3 class="section-title">Today's progress</h3>
+<div class="stats">
+<div class="glass stat">
+<div class="stat-label">Focus sessions</div>
+<div class="stat-value" id="sessions">0</div>
+<div class="stat-unit">sessions</div>
+</div>
+<div class="glass stat">
+<div class="stat-label">Study time</div>
+<div class="stat-value" id="studyTime">0</div>
+<div class="stat-unit">minutes</div>
+</div>
+<div class="glass stat">
+<div class="stat-label">Daily goal</div>
+<div class="stat-value" id="goalPercent">0%</div>
+<div class="stat-unit">completed</div>
+</div>
+</div>
+
+<h3 class="section-title">Daily goal</h3>
+<section class="glass goal-card">
+<div class="goal-top">
+<strong>Today's target</strong>
+<span class="goal-number" id="goalText">0 / 120 min</span>
+</div>
+<div class="goal-track"><div class="goal-fill" id="goalFill"></div></div>
+</section>
+
+<h3 class="section-title">Study analytics</h3>
+<section class="glass chart-card">
+<div class="chart-header">
+<strong>Study activity</strong>
+<div class="range-tabs">
+<button class="range-btn active" data-range="week">Week</button>
+<button class="range-btn" data-range="month">Month</button>
+</div>
+</div>
+<div class="chart-summary">
+<div class="chart-total" id="chartTotal">0h 0m</div>
+<div class="chart-caption" id="chartCaption">Total study time this week</div>
+</div>
+<div class="chart-wrap">
+<svg id="studyChart" viewBox="0 0 340 175" role="img" aria-label="Study time chart"></svg>
+</div>
+<div class="legend">● Study time</div>
+</section>
+
+<h3 class="section-title">Overall statistics</h3>
+<div class="stats">
+<div class="glass stat">
+<div class="stat-label">This week</div>
+<div class="stat-value" id="weekTime">0h</div>
+<div class="stat-unit">study time</div>
+</div>
+<div class="glass stat">
+<div class="stat-label">This month</div>
+<div class="stat-value" id="monthTime">0h</div>
+<div class="stat-unit">study time</div>
+</div>
+<div class="glass stat">
+<div class="stat-label">Total sessions</div>
+<div class="stat-value" id="allSessions">0</div>
+<div class="stat-unit">completed</div>
+</div>
+</div>
+
+<h3 class="section-title">Subject breakdown</h3>
+<section class="glass subjects-card" id="subjectBreakdown">
+<div class="empty">Complete a focus session to see your subjects.</div>
+</section>
+
+<h3 class="section-title">Timer settings</h3>
+<section class="glass settings-card">
+<div class="settings-grid">
+<label>Focus (min)<input type="number" id="focusSetting" min="1" max="180" value="25"></label>
+<label>Short break<input type="number" id="shortSetting" min="1" max="60" value="5"></label>
+<label>Long break<input type="number" id="longSetting" min="1" max="90" value="15"></label>
+</div>
+<button class="secondary" id="saveSettings" style="margin-top:14px;width:100%">Save settings</button>
+</section>
+
+<h3 class="section-title">My tasks</h3>
+<section class="glass tasks-card">
+<form class="task-form" id="taskForm">
+<input id="taskInput" placeholder="Add a study task..." maxlength="100">
+<button type="submit">Add</button>
+</form>
+<div id="taskList"></div>
+</section>
+
+<footer>Qoura Study · Build your best self, one session at a time.</footer>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+
+const today = () => {
+const d = new Date();
+return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+};
+
+const dateKey = d =>
+d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+
+const parseDate = key => {
+const [y,m,d]=key.split("-").map(Number);
+return new Date(y,m-1,d);
+};
+
+let data = {};
+let settings = {focus:25,short:5,long:15};
+let tasks = [];
+let mode = "focus";
+let remaining = 1500;
+let total = 1500;
+let interval = null;
+let running = false;
+let chartRange = "week";
+
+try{
+data=JSON.parse(localStorage.getItem("qouraStudyData")||"{}");
+settings={...settings,...JSON.parse(localStorage.getItem("qouraStudySettings")||"{}")};
+tasks=JSON.parse(localStorage.getItem("qouraStudyTasks")||"[]");
+}catch(e){console.log("Data loading error",e)}
+
+function saveData(){
+localStorage.setItem("qouraStudyData",JSON.stringify(data));
+}
+function saveSettings(){
+localStorage.setItem("qouraStudySettings",JSON.stringify(settings));
+}
+function todayData(){
+const key=today();
+if(!data[key])data[key]={sessions:0,minutes:0,subjects:{}};
+if(!data[key].subjects)data[key].subjects={};
+return data[key];
+}
+function formatTime(minutes){
+const h=Math.floor(minutes/60);
+const m=minutes%60;
+return h+"h "+m+"m";
+}
+function allDays(){
+return Object.keys(data).sort();
+}
+function getRangeDays(days){
+const end=new Date();
+const start=new Date(end);
+start.setDate(end.getDate()-days+1);
+const result=[];
+for(let i=0;i<days;i++){
+const d=new Date(start);
+d.setDate(start.getDate()+i);
+result.push(dateKey(d));
+}
+return result;
+}
+function totalForDays(keys){
+return keys.reduce((sum,k)=>sum+(Number(data[k]?.minutes)||0),0);
+}
+function sessionsForDays(keys){
+return keys.reduce((sum,k)=>sum+(Number(data[k]?.sessions)||0),0);
 }
 
-// MODE MANAGEMENT
-function setMode(newMode) {
-  clearInterval(interval);
-  interval = null;
-  running = false;
-  mode = newMode;
+function updateStats(){
+const d=todayData();
+$("sessions").textContent=d.sessions||0;
+$("studyTime").textContent=d.minutes||0;
 
-  const durations = {
-    focus: settings.focus,
-    short: settings.short,
-    long: settings.long
-  };
+const percent=Math.min(100,Math.round((d.minutes||0)/120*100));
+$("goalPercent").textContent=percent+"%";
+$("goalText").textContent=(d.minutes||0)+" / 120 min";
+$("goalFill").style.width=percent+"%";
 
-  remaining = durations[mode] * 60;
-  total = remaining;
+const week=getRangeDays(7);
+const month=getRangeDays(30);
+$("weekTime").textContent=formatTime(totalForDays(week));
+$("monthTime").textContent=formatTime(totalForDays(month));
+$("allSessions").textContent=sessionsForDays(allDays());
 
-  document.querySelectorAll(".tab").forEach(btn => {
-    btn.classList.toggle("active", btn.dataset.mode === mode);
-  });
-
-  $("startBtn").textContent =
-    mode === "focus" ? "Start focus" : "Start break";
-
-  $("timerLabel").textContent = {
-    focus: "Time to focus",
-    short: "Take a short break",
-    long: "Enjoy your long break"
-  }[mode];
-
-  updateTimerDisplay();
+renderChart();
+renderSubjects();
+saveData();
 }
 
-// COMPLETE FOCUS SESSION
-function completeSession() {
-  if (mode === "focus") {
-    const d = todayData();
-    const subject = $("subject").value;
+function renderChart(){
+const days=chartRange==="week"?getRangeDays(7):getRangeDays(30);
+const values=days.map(k=>Number(data[k]?.minutes)||0);
+const totalMinutes=values.reduce((a,b)=>a+b,0);
 
-    d.sessions = (d.sessions || 0) + 1;
-    d.minutes = (d.minutes || 0) + settings.focus;
+$("chartTotal").textContent=formatTime(totalMinutes);
+$("chartCaption").textContent=chartRange==="week"?"Total study time this week":"Total study time this month";
 
-    d.subjects[subject] =
-      (d.subjects[subject] || 0) + settings.focus;
+const svg=$("studyChart");
+const width=340,height=175;
+const left=12,right=12,top=15,bottom=27;
+const chartW=width-left-right;
+const chartH=height-top-bottom;
+const max=Math.max(60,Math.ceil(Math.max(...values,0)/60)*60);
 
-    saveData();
-    updateStats();
+const points=values.map((v,i)=>({
+x:left+(i/(values.length-1))*chartW,
+y:top+chartH-(v/max)*chartH
+}));
 
-    $("timerLabel").textContent = "Focus session completed! 🎉";
-  } else {
-    $("timerLabel").textContent = "Break completed!";
-  }
-
-  clearInterval(interval);
-  interval = null;
-  running = false;
-
-  $("startBtn").textContent = "Start again";
+let path="M "+points[0].x+" "+points[0].y;
+for(let i=1;i<points.length;i++){
+const prev=points[i-1],cur=points[i];
+const mid=(prev.x+cur.x)/2;
+path+=` C ${mid} ${prev.y}, ${mid} ${cur.y}, ${cur.x} ${cur.y}`;
 }
 
-// START / PAUSE
-function toggleTimer() {
-  if (running) {
-    clearInterval(interval);
-    interval = null;
-    running = false;
-    $("startBtn").textContent = "Resume";
-    return;
-  }
+const area=path+` L ${points[points.length-1].x} ${top+chartH} L ${points[0].x} ${top+chartH} Z`;
 
-  running = true;
-  $("startBtn").textContent = "Pause";
-
-  interval = setInterval(() => {
-    remaining--;
-
-    updateTimerDisplay();
-
-    if (remaining <= 0) {
-      remaining = 0;
-      updateTimerDisplay();
-      completeSession();
-    }
-  }, 1000);
+let grid="";
+for(let i=0;i<=3;i++){
+const y=top+(chartH/3)*i;
+grid+=`<line class="chart-grid" x1="${left}" y1="${y}" x2="${width-right}" y2="${y}"/>`;
 }
 
-// RESET TIMER
-function resetTimer() {
-  clearInterval(interval);
-  interval = null;
-  running = false;
-
-  const durations = {
-    focus: settings.focus,
-    short: settings.short,
-    long: settings.long
-  };
-
-  remaining = durations[mode] * 60;
-  total = remaining;
-
-  $("startBtn").textContent =
-    mode === "focus" ? "Start focus" : "Start break";
-
-  updateTimerDisplay();
-}
-
-// SKIP TIMER
-function skipTimer() {
-  clearInterval(interval);
-  interval = null;
-  running = false;
-
-  if (mode === "focus") {
-    setMode("short");
-  } else {
-    setMode("focus");
-  }
-}
-
-// SUBJECT BREAKDOWN
-function renderSubjects() {
-  const container = $("subjectBreakdown");
-  const totals = {};
-
-  allDays().forEach(day => {
-    const subjects = data[day]?.subjects || {};
-
-    Object.entries(subjects).forEach(([name, minutes]) => {
-      totals[name] = (totals[name] || 0) + Number(minutes || 0);
-    });
-  });
-
-  const entries = Object.entries(totals)
-    .filter(([, minutes]) => minutes > 0)
-    .sort((a, b) => b[1] - a[1]);
-
-  if (!entries.length) {
-    container.innerHTML =
-      '<div class="empty">Complete a focus session to see your subjects.</div>';
-    return;
-  }
-
-  const max = Math.max(...entries.map(item => item[1]));
-
-  container.innerHTML = entries.map(([name, minutes]) => `
-    <div class="subject-row">
-      <div class="subject-top">
-        <strong>${escapeHTML(name)}</strong>
-        <span>${formatTime(minutes)}</span>
-      </div>
-      <div class="subject-track">
-        <div class="subject-fill"
-          style="width:${minutes / max * 100}%">
-        </div>
-      </div>
-    </div>
-  `).join("");
-}
-
-// SAFE HTML TEXT
-function escapeHTML(value) {
-  return String(value).replace(/[&<>"']/g, char => ({
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#39;"
-  })[char]);
-}
-
-// CHART
-function renderChart() {
-  const svg = $("studyChart");
-
-  const days = chartRange === "week" ? 7 : 30;
-  const keys = getRangeDays(days);
-  const values = keys.map(key => Number(data[key]?.minutes || 0));
-
-  const sum = values.reduce((a, b) => a + b, 0);
-
-  $("chartTotal").textContent = formatTime(sum);
-  $("chartCaption").textContent =
-    chartRange === "week"
-      ? "Total study time this week"
-      : "Total study time this month";
-
-  const width = 340;
-  const height = 175;
-  const left = 28;
-  const right = 10;
-  const top = 15;
-  const bottom = 32;
-
-  const max = Math.max(60, ...values);
-  const chartHeight = height - top - bottom;
-  const chartWidth = width - left - right;
-
-  const points = values.map((value, i) => ({
-    x: left + i * chartWidth / Math.max(1, values.length - 1),
-    y: top + chartHeight - (value / max) * chartHeight
-  }));
-
-  const line = points.map((p, i) =>
-    (i === 0 ? "M" : "L") + p.x + "," + p.y
-  ).join(" ");
-
-  const area = line +
-    ` L ${points[points.length - 1].x},${height - bottom}` +
-    ` L ${points[0].x},${height - bottom} Z`;
-
-  let grid = "";
-
-  for (let i = 0; i < 4; i++) {
-    const y = top + i * chartHeight / 3;
-    grid += `<line class="chart-grid" x1="${left}" y1="${y}"
-      x2="${width - right}" y2="${y}"/>`;
-  }
-
-  const dots = points.map(p =>
-    `<circle class="chart-dot" cx="${p.x}" cy="${p.y}" r="4"/>`
-  ).join("");
-
-  const labels = chartRange === "week"
-    ? ["M", "T", "W", "T", "F", "S", "S"]
-    : ["1", "5", "10", "15", "20", "25", "30"];
-
-  const labelHTML = labels.map((label, i) => {
-    const index = chartRange === "week"
-      ? i
-      : Math.round(i * (days - 1) / 6);
-
-    const x = left + index * chartWidth / (days - 1);
-
-    return `<text class="chart-label" x="${x}" y="${height - 8}"
-      text-anchor="middle">${label}</text>`;
-  }).join("");
-
-  svg.innerHTML = `
-    ${grid}
-    <path class="chart-area" d="${area}"/>
-    <path class="chart-line" d="${line}"/>
-    ${dots}
-    ${labelHTML}
-  `;
-}
-
-// TASKS
-function saveTasks() {
-  localStorage.setItem("qouraStudyTasks", JSON.stringify(tasks));
-}
-
-function renderTasks() {
-  const container = $("taskList");
-
-  if (!tasks.length) {
-    container.innerHTML =
-      '<div class="empty">No tasks yet. Add your first task!</div>';
-    return;
-  }
-
-  container.innerHTML = tasks.map((task, index) => `
-    <div class="task ${task.done ? "done" : ""}">
-      <input type="checkbox"
-        data-index="${index}"
-        ${task.done ? "checked" : ""}>
-      <span>${escapeHTML(task.text)}</span>
-      <button class="delete-task"
-        data-delete="${index}" aria-label="Delete task">×</button>
-    </div>
-  `).join("");
-}
-
-// EVENT LISTENERS
-
-$("startBtn").addEventListener("click", toggleTimer);
-$("resetBtn").addEventListener("click", resetTimer);
-$("skipBtn").addEventListener("click", skipTimer);
-
-document.querySelectorAll(".tab").forEach(btn => {
-  btn.addEventListener("click", () => setMode(btn.dataset.mode));
+const indexes=chartRange==="week"?[0,1,2,3,4,5,6]:[0,7,14,21,29];
+let labels="";
+indexes.forEach(i=>{
+if(!points[i])return;
+const date=parseDate(days[i]);
+const label=chartRange==="week"
+?date.toLocaleDateString("en",{weekday:"short"})
+:String(date.getDate());
+labels+=`<text class="chart-label" x="${points[i].x}" y="${height-5}" text-anchor="middle">${label}</text>`;
 });
 
-// THEME
-$("themeBtn").addEventListener("click", () => {
-  document.body.classList.toggle("dark");
-
-  const dark = document.body.classList.contains("dark");
-
-  $("themeBtn").textContent = dark ? "☀" : "☾";
-
-  localStorage.setItem("qouraStudyTheme", dark ? "dark" : "light");
+let dots="";
+points.forEach((p,i)=>{
+if(values[i]>0){
+dots+=`<circle class="chart-dot" cx="${p.x}" cy="${p.y}" r="3.5"/>`;
+}
 });
 
-// CHART RANGE
-document.querySelectorAll(".range-btn").forEach(btn => {
-  btn.addEventListener("click", () => {
-    chartRange = btn.dataset.range;
-
-    document.querySelectorAll(".range-btn").forEach(item => {
-      item.classList.toggle("active", item === btn);
-    });
-
-    renderChart();
-  });
-});
-
-// SETTINGS
-$("saveSettings").addEventListener("click", () => {
-  const focus = Number($("focusSetting").value);
-  const short = Number($("shortSetting").value);
-  const long = Number($("longSetting").value);
-
-  if (
-    !Number.isInteger(focus) || focus < 1 || focus > 180 ||
-    !Number.isInteger(short) || short < 1 || short > 60 ||
-    !Number.isInteger(long) || long < 1 || long > 90
-  ) {
-    alert("Please enter valid timer settings.");
-    return;
-  }
-
-  if (running) {
-    alert("Pause the timer before changing settings.");
-    return;
-  }
-
-  settings = { focus, short, long };
-  saveSettings();
-
-  resetTimer();
-
-  alert("Settings saved successfully!");
-});
-
-// ADD TASK
-$("taskForm").addEventListener("submit", event => {
-  event.preventDefault();
-
-  const input = $("taskInput");
-  const value = input.value.trim();
-
-  if (!value) return;
-
-  tasks.push({
-    text: value,
-    done: false
-  });
-
-  saveTasks();
-  renderTasks();
-
-  input.value = "";
-});
-
-// COMPLETE / DELETE TASK
-$("taskList").addEventListener("change", event => {
-  if (event.target.matches('input[type="checkbox"]')) {
-    const index = Number(event.target.dataset.index);
-
-    if (tasks[index]) {
-      tasks[index].done = event.target.checked;
-      saveTasks();
-      renderTasks();
-    }
-  }
-});
-
-$("taskList").addEventListener("click", event => {
-  const button = event.target.closest("[data-delete]");
-
-  if (button) {
-    const index = Number(button.dataset.delete);
-    tasks.splice(index, 1);
-    saveTasks();
-    renderTasks();
-  }
-});
-
-// INITIALIZE APP
-const savedTheme = localStorage.getItem("qouraStudyTheme");
-
-if (savedTheme === "dark") {
-  document.body.classList.add("dark");
-  $("themeBtn").textContent = "☀";
+svg.innerHTML=`
+${grid}
+<path class="chart-area" d="${area}"/>
+<path class="chart-line" d="${path}"/>
+${dots}${labels}
+`;
 }
 
-$("focusSetting").value = settings.focus;
-$("shortSetting").value = settings.short;
-$("longSetting").value = settings.long;
+function renderSubjects(){
+const totals={};
+allDays().forEach(k=>{
+const subjects=data[k]?.subjects||{};
+Object.entries(subjects).forEach(([name,mins])=>{
+totals[name]=(totals[name]||0)+(Number(mins)||0);
+});
+});
 
-setMode("focus");
-updateTimerDisplay();
+const sorted=Object.entries(totals).sort((a,b)=>b[1]-a[1]);
+const container=$("subjectBreakdown");
+
+if(!sorted.length){
+container.innerHTML='<div class="empty">Complete a focus session to see your subjects.</div>';
+return;
+}
+
+const max=sorted[0][1];
+container.innerHTML=sorted.map(([name,mins])=>`
+<div class="subject-row">
+<div class="subject-top">
+<strong>${escapeHTML(name)}</strong>
+<span>${formatTime(mins)}</span>
+</div>
+<div class="subject-track">
+<div class="subject-fill" style="width:${Math.max(2,mins/max*100)}%"></div>
+</div>
+</div>
+`).join("");
+}
+
+function escapeHTML(str){
+return String(str).replace(/[&<>"']/g,c=>({
+"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+}[c]));
+}
+
+function displayTimer(){
+const min=Math.floor(remaining/60);
+const sec=remaining%60;
+$("timer").textContent=String(min).padStart(2,"0")+":"+String(sec).padStart(2,"0");
+const progress=total?((total-remaining)/total)*100:0;
+$("progressFill").style.width=progress+"%";
+}
+
+function stopTimer(){
+clearInterval(interval);
+interval=null;
+running=false;
+$("startBtn").textContent="Start";
+}
+
+function selectMode(newMode){
+stopTimer();
+mode=newMode;
+total=settings[mode]*60;
+remaining=total;
+document.querySelectorAll(".tab").forEach(tab=>{
+tab.classList.toggle("active",tab.dataset.mode===mode);
+});
+$("timerLabel").textContent=
+mode==="focus"?"Time to focus":
+mode==="short"?"Take a short break":"Take a long break";
+displayTimer();
+}
+
+function finishTimer(){
+stopTimer();
+if(mode==="focus"){
+const d=todayData();
+const subject=$("subject").value;
+d.sessions=(d.sessions||0)+1;
+d.minutes=(d.minutes||0)+settings.focus;
+d.subjects[subject]=(d.subjects[subject]||0)+settings.focus;
+saveData();
+updateStats();
+alert("Focus session completed! Great work.");
+const nextMode=d.sessions%4===0?"long":"short";
+selectMode(nextMode);
+}else{
+alert("Break completed. Ready for another session?");
+selectMode("focus");
+}
+}
+
+function startTimer(){
+if(running){stopTimer();return}
+running=true;
+$("startBtn").textContent="Pause";
+interval=setInterval(()=>{
+if(remaining>0){
+remaining--;
+displayTimer();
+}else{
+finishTimer();
+}
+},1000);
+}
+
+$("startBtn").addEventListener("click",startTimer);
+$("resetBtn").addEventListener("click",()=>{
+stopTimer();
+remaining=total;
+displayTimer();
+});
+$("skipBtn").addEventListener("click",()=>{
+selectMode(mode==="focus"?"short":"focus");
+});
+document.querySelectorAll(".tab").forEach(tab=>{
+tab.addEventListener("click",()=>selectMode(tab.dataset.mode));
+});
+
+$("saveSettings").addEventListener("click",()=>{
+const f=Number($("focusSetting").value);
+const s=Number($("shortSetting").value);
+const l=Number($("longSetting").value);
+if(![f,s,l].every(n=>Number.isInteger(n)&&n>0)){
+alert("Please enter valid durations.");
+return;
+}
+settings={focus:f,short:s,long:l};
+saveSettings();
+selectMode(mode);
+alert("Settings saved.");
+});
+
+$("themeBtn").addEventListener("click",()=>{
+document.body.classList.toggle("dark");
+localStorage.setItem("qouraStudyDark",document.body.classList.contains("dark"));
+});
+
+if(localStorage.getItem("qouraStudyDark")==="true"){
+document.body.classList.add("dark");
+}
+
+document.querySelectorAll(".range-btn").forEach(btn=>{
+btn.addEventListener("click",()=>{
+chartRange=btn.dataset.range;
+document.querySelectorAll(".range-btn").forEach(b=>b.classList.toggle("active",b===btn));
+renderChart();
+});
+});
+
+function saveTasks(){
+localStorage.setItem("qouraStudyTasks",JSON.stringify(tasks));
+}
+
+function renderTasks(){
+$("taskList").innerHTML="";
+tasks.forEach((task,index)=>{
+const row=document.createElement("div");
+row.className="task"+(task.done?" done":"");
+
+const check=document.createElement("input");
+check.type="checkbox";
+check.checked=task.done;
+check.addEventListener("change",()=>{
+tasks[index].done=check.checked;
+saveTasks();
+renderTasks();
+});
+
+const label=document.createElement("span");
+label.textContent=task.text;
+
+const del=document.createElement("button");
+del.className="delete-task";
+del.textContent="×";
+del.setAttribute("aria-label","Delete task");
+del.addEventListener("click",()=>{
+tasks.splice(index,1);
+saveTasks();
+renderTasks();
+});
+
+row.append(check,label,del);
+$("taskList").appendChild(row);
+});
+}
+
+$("taskForm").addEventListener("submit",event=>{
+event.preventDefault();
+const value=$("taskInput").value.trim();
+if(!value)return;
+tasks.push({text:value,done:false});
+$("taskInput").value="";
+saveTasks();
+renderTasks();
+});
+
+$("focusSetting").value=settings.focus;
+$("shortSetting").value=settings.short;
+$("longSetting").value=settings.long;
+
 updateStats();
 renderTasks();
-
+displayTimer();
 </script>
 </body>
 </html>
