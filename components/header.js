@@ -8,3 +8,4 @@ function setupHeader() {
     if(appleIcon) appleIcon.href = customIconUrl;
   }
 }
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
