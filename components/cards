@@ -22,4 +22,27 @@ function renderDashboardUI(state) {
     if (state.data[k] && state.data[k].minutes > 0) { 
       streak++; curDate.setDate(curDate.getDate() - 1); 
     } else { 
-      if
+      if (streak === 0 && k === todayStr) { curDate.setDate(curDate.getDate() - 1); continue; } 
+      break; 
+    }
+  }
+  document.getElementById("streakCount").textContent = streak;
+}
+
+function renderInspirationUI() {
+  const q = CONFIG.QUOTES[Math.floor(Math.random() * CONFIG.QUOTES.length)];
+  const card = document.getElementById("inspirationCard");
+  if(card) {
+    card.innerHTML = `
+      <p style="font-size:18px; font-weight:500; line-height:1.7; margin:0 0 16px;">"${q.text}"</p>
+      <div style="font-size:14px; color:var(--muted); font-weight:600;">— ${q.author}</div>
+    `;
+  }
+  const dashCard = document.getElementById("dashboardInspiration");
+  if(dashCard) {
+    dashCard.innerHTML = `
+      <p style="font-size:16px; font-weight:500; line-height:1.6; margin:0 0 12px;">"${q.text}"</p>
+      <p style="font-size:13px; color:var(--muted); margin:0;">— ${q.author}</p>
+    `;
+  }
+}
