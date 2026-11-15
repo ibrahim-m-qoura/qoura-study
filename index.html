@@ -1,238 +1,929 @@
-const App = {
-  state: {
-    data: {},
-    settings: { focus: 25, short: 5, long: 15 },
-    tasks: [],
-    subjects: [],
-    theme: "natural-glass"
-  },
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#829d87">
+<title>Qortex — Study Smarter. Focus Deeper.</title>
 
-  init() {
-    // 1. تحميل البيانات
-    const loaded = StorageManager.load();
-    this.state = { ...this.state, ...loaded };
+<!-- خط DM Sans -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&display=swap" rel="stylesheet">
+
+<!-- الأيقونة الخاصة بالآيفون -->
+<link rel="apple-touch-icon" href="https://i.postimg.cc/7Z81NTtw/image.png">
+
+<style>
+/* =========================================================
+   GLOBAL DESIGN SYSTEM & THEMES
+   ========================================================= */
+:root {
+  --font-main: 'DM Sans', system-ui, -apple-system, sans-serif;
+  
+  /* Default Theme: Natural Glass */
+  --bg: #F5F6F2;
+  --bg-grad-1: #E8EDE4;
+  --bg-grad-2: #EBEFF0;
+  --surface: rgba(255, 255, 255, 0.65);
+  --surface-solid: #FFFFFF;
+  --text: #26332D;
+  --muted: #87918A;
+  --accent: #829D87;
+  --accent-light: #A1B9A3;
+  --border: #E6EAE4;
+  --danger: #C97A7A;
+
+  --shadow-sm: 0 2px 8px rgba(38, 51, 45, 0.04);
+  --shadow-md: 0 8px 24px rgba(38, 51, 45, 0.06);
+  --shadow-glass: 0 8px 32px rgba(38, 51, 45, 0.08), inset 0 1px 1px rgba(255, 255, 255, 0.6);
+  
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 24px;
+  --radius-float: 28px;
+  
+  --transition: 0.3s cubic-bezier(0.2, 0.8, 0.3, 1);
+  --transition-fast: 0.2s ease;
+  --nav-height: 72px;
+  --sidebar-width: 260px;
+}
+
+/* --- Themes --- */
+body[data-theme="pure-light"] {
+  --bg: #FAFAFA; --bg-grad-1: #F0F0F0; --bg-grad-2: #F5F5F5;
+  --surface: rgba(255, 255, 255, 0.8); --surface-solid: #FFFFFF;
+  --text: #111111; --muted: #666666; --accent: #333333; --accent-light: #555555;
+  --border: #E0E0E0;
+}
+body[data-theme="midnight-glass"] {
+  --bg: #0F1115; --bg-grad-1: #1A1D24; --bg-grad-2: #16191F;
+  --surface: rgba(30, 34, 40, 0.65); --surface-solid: #1E2228;
+  --text: #EDEDED; --muted: #88929C; --accent: #A1B9A3; --accent-light: #C5D9C7;
+  --border: rgba(255, 255, 255, 0.1);
+}
+body[data-theme="ocean-blue"] {
+  --bg: #F0F4F8; --bg-grad-1: #D9E6F2; --bg-grad-2: #E1EAF2;
+  --surface: rgba(255, 255, 255, 0.7); --surface-solid: #FFFFFF;
+  --text: #1A2B3C; --muted: #6B8299; --accent: #4A80A8; --accent-light: #7AA2C4;
+  --border: #D0DFE8;
+}
+body[data-theme="lavender-mist"] {
+  --bg: #F6F4F9; --bg-grad-1: #EAE4F2; --bg-grad-2: #F0ECF5;
+  --surface: rgba(255, 255, 255, 0.7); --surface-solid: #FFFFFF;
+  --text: #2D2638; --muted: #887A9B; --accent: #8672A8; --accent-light: #A897C4;
+  --border: #E2D9EB;
+}
+body[data-theme="warm-sand"] {
+  --bg: #FAF8F5; --bg-grad-1: #F2EBE1; --bg-grad-2: #F5EFE8;
+  --surface: rgba(255, 255, 255, 0.7); --surface-solid: #FFFFFF;
+  --text: #3E2F24; --muted: #9A8A7A; --accent: #C29B70; --accent-light: #D4B694;
+  --border: #EBE2D6;
+}
+body[data-theme="graphite"] {
+  --bg: #F0F0F0; --bg-grad-1: #E0E0E0; --bg-grad-2: #E8E8E8;
+  --surface: rgba(255, 255, 255, 0.7); --surface-solid: #FFFFFF;
+  --text: #202020; --muted: #707070; --accent: #505050; --accent-light: #808080;
+  --border: #D0D0D0;
+}
+body[data-theme="sage-minimal"] {
+  --bg: #F3F6F2; --bg-grad-1: #E2EADF; --bg-grad-2: #E8EFE6;
+  --surface: rgba(255, 255, 255, 0.7); --surface-solid: #FFFFFF;
+  --text: #243024; --muted: #788A78; --accent: #6C8C6C; --accent-light: #8FA88F;
+  --border: #DCE4DA;
+}
+
+/* =========================================================
+   BASE STYLES
+   ========================================================= */
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { overscroll-behavior-y: contain; }
+body {
+  margin: 0; padding: 0; min-height: 100vh;
+  font-family: var(--font-main);
+  color: var(--text);
+  background: radial-gradient(circle at 15% 10%, var(--bg-grad-1) 0%, transparent 40%), radial-gradient(circle at 85% 30%, var(--bg-grad-2) 0%, transparent 35%), var(--bg);
+  background-attachment: fixed;
+  -webkit-font-smoothing: antialiased;
+  font-size: 15px; line-height: 1.5;
+  transition: background var(--transition), color var(--transition);
+}
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; border: 0; background: none; }
+input, select, textarea { outline: none; }
+a { color: inherit; text-decoration: none; }
+[hidden] { display: none !important; }
+
+/* SVG Icons Base */
+.icon { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+.icon-sm { width: 16px; height: 16px; }
+.icon-lg { width: 24px; height: 24px; }
+.icon-xl { width: 32px; height: 32px; }
+
+/* =========================================================
+   LAYOUT
+   ========================================================= */
+.app-shell { display: flex; min-height: 100vh; }
+.sidebar {
+  display: none; width: var(--sidebar-width); padding: 24px 16px;
+  background: var(--surface); border-right: 1px solid var(--border);
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  position: sticky; top: 0; height: 100vh; overflow-y: auto; flex-shrink: 0;
+}
+.sidebar-brand { display: flex; align-items: center; gap: 12px; padding: 0 8px 24px; border-bottom: 1px solid var(--border); margin-bottom: 16px; }
+.brand-logo { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; background: linear-gradient(135deg, var(--accent), var(--accent-light)); color: white; box-shadow: 0 4px 12px rgba(0,0,0,0.1); overflow: hidden; }
+.brand-logo img { width: 100%; height: 100%; object-fit: cover; }
+.sidebar-brand h1 { font-size: 20px; margin: 0; letter-spacing: -0.5px; font-weight: 700; }
+.sidebar-brand .tagline { font-size: 11px; color: var(--muted); font-weight: 500; }
+
+.nav-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.nav-item { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: var(--radius-md); color: var(--muted); font-size: 14px; font-weight: 500; cursor: pointer; transition: all var(--transition-fast); }
+.nav-item:hover { background: rgba(130, 157, 135, 0.08); color: var(--text); }
+.nav-item.active { background: var(--accent); color: #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+.nav-item.active .icon { stroke: #fff; }
+.nav-section-title { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); font-weight: 700; padding: 20px 14px 8px; opacity: 0.6; }
+
+.main-content { flex: 1; padding: 20px 16px calc(var(--nav-height) + 24px); min-width: 0; max-width: 100%; }
+.page { display: none; animation: fadeUp 0.4s ease both; }
+.page.active { display: block; }
+
+@keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes popIn { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
+
+/* =========================================================
+   COMPONENTS (Glass, Cards, Buttons)
+   ========================================================= */
+.glass {
+  background: var(--surface); border: 1px solid var(--border);
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  border-radius: var(--radius-lg); box-shadow: var(--shadow-glass);
+  transition: background var(--transition), border-color var(--transition);
+}
+.card { padding: 20px; }
+.card-sm { padding: 16px; }
+
+.btn-primary {
+  background: var(--accent); color: #fff; padding: 14px 28px;
+  border-radius: var(--radius-md); font-weight: 600; font-size: 15px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1); transition: transform var(--transition-fast), filter var(--transition-fast);
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+}
+.btn-primary:hover { filter: brightness(1.05); }
+.btn-primary:active { transform: scale(0.97); }
+
+.btn-secondary {
+  padding: 14px 20px; border-radius: var(--radius-md); border: 1px solid var(--border);
+  background: var(--surface-solid); color: var(--text); font-weight: 600; font-size: 14px;
+  transition: background var(--transition-fast), transform var(--transition-fast);
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+}
+.btn-secondary:hover { background: var(--bg); }
+.btn-secondary:active { transform: scale(0.97); }
+
+.btn-ghost {
+  padding: 10px 14px; border-radius: var(--radius-sm); background: rgba(130, 157, 135, 0.1);
+  color: var(--text); font-weight: 600; font-size: 13px;
+  transition: background var(--transition-fast);
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+}
+.btn-ghost:hover { background: rgba(130, 157, 135, 0.2); }
+
+/* Typography */
+.page-header { margin-bottom: 24px; }
+.page-title { font-size: 26px; font-weight: 700; margin: 0 0 6px; letter-spacing: -0.6px; }
+.page-subtitle { font-size: 14px; color: var(--muted); margin: 0; }
+.section-title { font-size: 16px; font-weight: 700; margin: 28px 0 14px; display: flex; align-items: center; justify-content: space-between; }
+
+/* =========================================================
+   DASHBOARD
+   ========================================================= */
+.greeting-card { padding: 24px; margin-bottom: 20px; background: linear-gradient(135deg, rgba(130, 157, 135, 0.15), transparent); border: 1px solid var(--border); border-radius: var(--radius-xl); }
+.greeting-card h2 { font-size: 24px; margin: 0 0 8px; font-weight: 700; letter-spacing: -0.5px; }
+.greeting-card p { font-size: 14px; color: var(--muted); margin: 0; }
+.date-chip { display: inline-flex; align-items: center; gap: 6px; margin-top: 14px; padding: 6px 12px; background: var(--surface-solid); border-radius: 20px; font-size: 12px; font-weight: 600; color: var(--text); box-shadow: var(--shadow-sm); }
+
+.dashboard-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 20px; }
+@media (min-width: 640px) { .dashboard-grid { grid-template-columns: repeat(4, 1fr); } }
+.metric-card { padding: 16px; }
+.metric-label { font-size: 12px; color: var(--muted); font-weight: 600; display: flex; align-items: center; gap: 6px; }
+.metric-value { font-size: 28px; font-weight: 700; margin-top: 8px; letter-spacing: -0.5px; }
+.metric-value small { font-size: 13px; font-weight: 500; color: var(--muted); }
+
+.quick-actions { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 20px; }
+@media (min-width: 640px) { .quick-actions { grid-template-columns: repeat(4, 1fr); } }
+.quick-btn { padding: 16px; display: flex; flex-direction: column; align-items: center; gap: 10px; font-size: 13px; font-weight: 600; border-radius: var(--radius-md); }
+.quick-icon { width: 44px; height: 44px; border-radius: var(--radius-sm); display: grid; place-items: center; background: rgba(130, 157, 135, 0.1); color: var(--accent); }
+
+/* =========================================================
+   FOCUS TIMER
+   ========================================================= */
+.focus-card { padding: 32px 20px; text-align: center; }
+.mode-tabs { display: flex; justify-content: center; gap: 8px; margin-bottom: 24px; }
+.mode-tab { padding: 8px 16px; border-radius: 30px; background: rgba(130, 157, 135, 0.1); color: var(--muted); font-size: 13px; font-weight: 600; transition: all var(--transition-fast); }
+.mode-tab.active { background: var(--accent); color: #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+.subject-picker { padding: 10px 34px 10px 14px; background: var(--surface-solid); border: 1px solid var(--border); border-radius: var(--radius-md); font-size: 14px; font-weight: 600; cursor: pointer; -webkit-appearance: none; appearance: none; background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2387918A' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'></polyline></svg>"); background-repeat: no-repeat; background-position: right 14px center; margin-bottom: 20px; }
+.timer-display { font-size: clamp(64px, 18vw, 110px); font-weight: 700; letter-spacing: -4px; line-height: 1.1; cursor: pointer; transition: transform var(--transition-fast); }
+.timer-display:active { transform: scale(0.98); }
+.timer-hint { font-size: 12px; color: var(--muted); margin-bottom: 24px; font-weight: 500; }
+.timer-controls { display: flex; justify-content: center; gap: 10px; margin-top: 24px; }
+
+/* =========================================================
+   THEMES PAGE
+   ========================================================= */
+.themes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; }
+.theme-card { border: 2px solid transparent; border-radius: var(--radius-md); padding: 12px; cursor: pointer; transition: all var(--transition-fast); background: var(--surface-solid); }
+.theme-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+.theme-card.active { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(130, 157, 135, 0.2); }
+.theme-preview { height: 80px; border-radius: var(--radius-sm); margin-bottom: 12px; display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--border); }
+.tp-header { height: 24px; background: var(--tp-bg); display: flex; align-items: center; padding: 0 8px; gap: 4px; }
+.tp-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--tp-accent); }
+.tp-body { flex: 1; background: var(--tp-bg); padding: 6px; display: flex; gap: 4px; }
+.tp-card { flex: 1; background: var(--tp-surface); border-radius: 4px; }
+.theme-name { font-size: 13px; font-weight: 600; text-align: center; }
+
+/* =========================================================
+   SETTINGS & MODALS
+   ========================================================= */
+.settings-item { display: flex; justify-content: space-between; align-items: center; padding: 16px 0; border-bottom: 1px solid var(--border); gap: 12px; }
+.settings-item:last-child { border-bottom: 0; }
+.settings-label { font-size: 15px; font-weight: 600; }
+.settings-desc { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.settings-input { padding: 8px 12px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 14px; font-weight: 600; text-align: center; width: 80px; }
+
+.modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; padding: 20px; z-index: 200; opacity: 0; pointer-events: none; transition: opacity var(--transition); }
+.modal-backdrop.open { opacity: 1; pointer-events: auto; }
+.modal { max-width: 440px; width: 100%; padding: 24px; border-radius: var(--radius-xl); transform: translateY(20px); transition: transform var(--transition); background: var(--surface-solid); box-shadow: var(--shadow-glass); border: 1px solid var(--border); }
+.modal-backdrop.open .modal { transform: translateY(0); }
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.modal-header h3 { margin: 0; font-size: 18px; }
+.modal-close { width: 32px; height: 32px; border-radius: 50%; background: var(--bg); display: grid; place-items: center; color: var(--muted); }
+
+.form-field { margin-bottom: 16px; }
+.form-field label { display: block; font-size: 13px; font-weight: 600; color: var(--muted); margin-bottom: 6px; }
+.form-field input, .form-field textarea { width: 100%; padding: 12px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 14px; }
+
+/* Mobile Bottom Nav */
+.bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; height: var(--nav-height); display: flex; background: var(--surface); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-top: 1px solid var(--border); z-index: 90; justify-content: space-around; align-items: center; padding-bottom: env(safe-area-inset-bottom); }
+.bottom-nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px; color: var(--muted); font-size: 11px; font-weight: 600; cursor: pointer; transition: color var(--transition-fast); }
+.bottom-nav-item.active { color: var(--accent); }
+
+/* Toast */
+.toast-container { position: fixed; bottom: calc(var(--nav-height) + 20px); left: 50%; transform: translateX(-50%); z-index: 300; display: flex; flex-direction: column; gap: 8px; align-items: center; pointer-events: none; }
+.toast { background: var(--text); color: var(--bg); padding: 12px 20px; border-radius: 30px; font-size: 13px; font-weight: 600; box-shadow: 0 10px 30px rgba(0,0,0,0.15); animation: popIn 0.3s cubic-bezier(0.2, 0.8, 0.3, 1) both; }
+
+/* Responsive */
+@media (min-width: 900px) {
+  .sidebar { display: block; }
+  .bottom-nav { display: none; }
+  .main-content { padding: 32px 48px; max-width: 1000px; margin: 0 auto; }
+  .toast-container { bottom: 32px; }
+}
+
+.empty-state { text-align: center; padding: 40px 20px; color: var(--muted); }
+.empty-state svg { margin-bottom: 12px; opacity: 0.5; }
+</style>
+</head>
+<body data-theme="natural-glass">
+
+<div class="app-shell">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-logo" id="brandLogoContainer"></div>
+      <div>
+        <h1>Qortex</h1>
+        <div class="tagline">Study Smarter. Focus Deeper.</div>
+      </div>
+    </div>
+
+    <div class="nav-section-title">Menu</div>
+    <ul class="nav-list">
+      <li class="nav-item active" data-page="dashboard"><svg class="icon" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>Dashboard</li>
+      <li class="nav-item" data-page="focus"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Focus</li>
+      <li class="nav-item" data-page="subjects"><svg class="icon" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>Subjects</li>
+      <li class="nav-item" data-page="tasks"><svg class="icon" viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>Tasks</li>
+      <li class="nav-item" data-page="analytics"><svg class="icon" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Analytics</li>
+    </ul>
+
+    <div class="nav-section-title">More</div>
+    <ul class="nav-list">
+      <li class="nav-item" data-page="themes"><svg class="icon" viewBox="0 0 24 24"><circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/><circle cx="6.5" cy="12.5" r=".5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>Themes</li>
+      <li class="nav-item" data-page="inspiration"><svg class="icon" viewBox="0 0 24 24"><path d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>Inspiration</li>
+      <li class="nav-item" data-page="settings"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Settings</li>
+    </ul>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main-content">
     
-    // 2. تطبيق الثيم
-    applyTheme(this.state.theme);
-
-    // 3. تجهيز الـ UI
-    this.renderAll();
-    setupNavigation();
-    setupModals();
-    setupHeader();
-
-    // 4. ربط الأحداث (Events)
-    this.bindEvents();
-  },
-
-  renderAll() {
-    renderThemesUI(this.state);
-    renderDashboardUI(this.state);
-    renderInspirationUI();
-    this.renderSubjects();
-    this.renderTasks();
-    this.renderFocusSubjectPicker();
-    
-    // تحديث الإعدادات
-    document.getElementById("setFocus").value = this.state.settings.focus;
-    document.getElementById("setShort").value = this.state.settings.short;
-    document.getElementById("setLong").value = this.state.settings.long;
-  },
-
-  save() {
-    StorageManager.save(this.state);
-  },
-
-  toast(msg) {
-    const t = document.createElement("div"); t.className = "toast"; t.textContent = msg;
-    document.getElementById("toastContainer").appendChild(t); 
-    setTimeout(() => t.remove(), 3000);
-  },
-
-  // --- Subjects UI ---
-  renderSubjects() {
-    const list = document.getElementById("subjectsList");
-    if (!this.state.subjects.length) {
-      list.innerHTML = `<div class="empty-state"><svg class="icon icon-xl" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg><br>No subjects yet. Add one to get started.</div>`;
-      return;
-    }
-    list.innerHTML = this.state.subjects.map(s => `
-      <div class="glass card" style="display:flex; align-items:center; gap:16px;">
-        <div style="width:40px; height:40px; border-radius:12px; background:${s.color}; display:grid; place-items:center; color:white; font-weight:700;">${s.name.charAt(0).toUpperCase()}</div>
-        <div style="flex:1;">
-          <div style="font-weight:600; font-size:16px;">${this.escapeHTML(s.name)}</div>
+    <!-- DASHBOARD -->
+    <section class="page active" id="page-dashboard">
+      <div class="page-header">
+        <h2 class="page-title">Dashboard</h2>
+        <p class="page-subtitle">Overview of your study progress</p>
+      </div>
+      <div class="greeting-card">
+        <h2 id="greetingText">Good morning 👋</h2>
+        <p>Let's make today count. Small steps every day lead to big achievements.</p>
+        <div class="date-chip" id="currentDate">—</div>
+      </div>
+      <div class="dashboard-grid">
+        <div class="glass card metric-card">
+          <div class="metric-label"><svg class="icon icon-sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Focus Today</div>
+          <div class="metric-value"><span id="todayMinutes">0</span><small>m</small></div>
         </div>
-        <button data-delete-subject="${s.id}" style="color:var(--muted);"><svg class="icon" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+        <div class="glass card metric-card">
+          <div class="metric-label"><svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>Streak</div>
+          <div class="metric-value"><span id="streakCount">0</span><small>d</small></div>
+        </div>
+        <div class="glass card metric-card">
+          <div class="metric-label"><svg class="icon icon-sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>Daily Goal</div>
+          <div class="metric-value"><span id="dailyGoalPct">0</span><small>%</small></div>
+        </div>
+        <div class="glass card metric-card">
+          <div class="metric-label"><svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>Subjects</div>
+          <div class="metric-value"><span id="activeSubjectsCount">0</span></div>
+        </div>
       </div>
-    `).join("");
-
-    // ربط حدث الحذف
-    list.querySelectorAll("[data-delete-subject]").forEach(btn => {
-      btn.addEventListener("click", () => {
-        if (!confirm("Delete this subject?")) return;
-        this.state.subjects = this.state.subjects.filter(s => s.id !== btn.dataset.deleteSubject);
-        this.save(); this.renderSubjects(); this.renderFocusSubjectPicker();
-      });
-    });
-  },
-
-  renderFocusSubjectPicker() {
-    const picker = document.getElementById("focusSubject");
-    picker.innerHTML = `<option value="">General Focus</option>` + 
-      this.state.subjects.map(s => `<option value="${s.id}">${this.escapeHTML(s.name)}</option>`).join("");
-  },
-
-  // --- Tasks UI ---
-  renderTasks() {
-    const list = document.getElementById("taskList");
-    if (!this.state.tasks.length) {
-      list.innerHTML = `<div class="empty-state">No tasks yet.</div>`;
-      return;
-    }
-    list.innerHTML = this.state.tasks.map(t => `
-      <div style="display:flex; align-items:center; gap:12px; padding:12px 0; border-bottom:1px solid var(--border);">
-        <input type="checkbox" ${t.done ? 'checked' : ''} data-toggle-task="${t.id}" style="width:20px; height:20px; accent-color:var(--accent);">
-        <span style="flex:1; font-size:15px; ${t.done ? 'text-decoration:line-through; color:var(--muted);' : ''}">${this.escapeHTML(t.text)}</span>
-        <button data-delete-task="${t.id}" style="color:var(--muted);"><svg class="icon icon-sm" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+      <h3 class="section-title">Quick Actions</h3>
+      <div class="quick-actions">
+        <button class="glass quick-btn" data-action="start-focus"><div class="quick-icon"><svg class="icon" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg></div>Start Focus</button>
+        <button class="glass quick-btn" data-action="add-subject"><div class="quick-icon"><svg class="icon" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>Add Subject</button>
+        <button class="glass quick-btn" data-action="add-task"><div class="quick-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></div>Add Task</button>
+        <button class="glass quick-btn" data-action="view-analytics"><div class="quick-icon"><svg class="icon" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div>Analytics</button>
       </div>
-    `).join("");
+      <h3 class="section-title">Daily Inspiration</h3>
+      <div class="glass card" id="dashboardInspiration"></div>
+    </section>
 
-    // ربط الأحداث
-    list.querySelectorAll("[data-toggle-task]").forEach(cb => {
-      cb.addEventListener("change", () => {
-        const t = this.state.tasks.find(x => x.id === cb.dataset.toggleTask);
-        if (t) { t.done = cb.checked; this.save(); this.renderTasks(); }
-      });
-    });
-    list.querySelectorAll("[data-delete-task]").forEach(btn => {
-      btn.addEventListener("click", () => {
-        this.state.tasks = this.state.tasks.filter(x => x.id !== btn.dataset.deleteTask);
-        this.save(); this.renderTasks();
-      });
-    });
-  },
+    <!-- FOCUS -->
+    <section class="page" id="page-focus">
+      <div class="page-header">
+        <h2 class="page-title">Focus</h2>
+        <p class="page-subtitle">Deep work, one session at a time</p>
+      </div>
+      <div class="glass focus-card">
+        <div class="mode-tabs">
+          <button class="mode-tab active" data-mode="focus">Focus</button>
+          <button class="mode-tab" data-mode="short">Short Break</button>
+          <button class="mode-tab" data-mode="long">Long Break</button>
+        </div>
+        <div>
+          <select class="subject-picker" id="focusSubject">
+            <option value="">General Focus</option>
+          </select>
+        </div>
+        <div class="timer-display" id="timerDisplay" role="button" tabindex="0">25:00</div>
+        <div class="timer-hint">Tap time to set custom duration</div>
+        <div class="timer-controls">
+          <button class="btn-primary" id="startBtn"><svg class="icon icon-sm" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg> Start</button>
+          <button class="btn-secondary" id="resetBtn">Reset</button>
+        </div>
+      </div>
+    </section>
 
-  escapeHTML(str) {
-    return String(str).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-  },
+    <!-- SUBJECTS -->
+    <section class="page" id="page-subjects">
+      <div class="page-header" style="display:flex; justify-content:space-between; align-items:flex-start;">
+        <div>
+          <h2 class="page-title">Subjects</h2>
+          <p class="page-subtitle">Manage your study materials</p>
+        </div>
+        <button class="btn-ghost" id="addSubjectBtn"><svg class="icon icon-sm" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add</button>
+      </div>
+      <div id="subjectsList" style="display:flex; flex-direction:column; gap:12px;"></div>
+    </section>
 
-  // --- ربط كل الأحداث ---
-  bindEvents() {
-    // زر تشغيل المؤقت
-    document.getElementById("startBtn").addEventListener("click", () => {
-      Timer.start((minutesDone) => {
-        this.toast("Session Complete! Great job.");
-        const todayStr = new Date().toISOString().split('T')[0];
-        if (!this.state.data[todayStr]) this.state.data[todayStr] = { minutes: 0, sessions: 0 };
-        this.state.data[todayStr].minutes += minutesDone;
-        this.state.data[todayStr].sessions += 1;
-        this.save();
-        renderDashboardUI(this.state);
-      });
-    });
+    <!-- TASKS -->
+    <section class="page" id="page-tasks">
+      <div class="page-header">
+        <h2 class="page-title">Tasks</h2>
+        <p class="page-subtitle">Keep track of what matters</p>
+      </div>
+      <div class="glass card">
+        <form id="taskForm" style="display:flex; gap:8px; margin-bottom:16px;">
+          <input type="text" id="taskInput" placeholder="Add a new task..." style="flex:1; padding:12px; border-radius:var(--radius-md); border:1px solid var(--border); background:var(--bg);" maxlength="100">
+          <button type="submit" class="btn-primary" style="padding:12px 20px;"><svg class="icon icon-sm" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+        </form>
+        <div id="taskList"></div>
+      </div>
+    </section>
 
-    // زر إعادة تعيين المؤقت
-    document.getElementById("resetBtn").addEventListener("click", () => {
-      Timer.reset(this.state.settings.focus);
-    });
+    <!-- THEMES -->
+    <section class="page" id="page-themes">
+      <div class="page-header">
+        <h2 class="page-title">Appearance</h2>
+        <p class="page-subtitle">Customize the look and feel of Qortex</p>
+      </div>
+      <div class="themes-grid" id="themesGrid"></div>
+    </section>
 
-    // تأكيد المدة المخصصة
-    document.getElementById("confirmDuration").addEventListener("click", () => {
-      const h = Number(document.getElementById("customHours").value) || 0;
-      const m = Number(document.getElementById("customMinutes").value) || 0;
-      if (Timer.setCustomDuration(h, m)) {
-        document.getElementById("durationModal").classList.remove("open");
-      } else {
-        this.toast("Minimum 1 minute");
-      }
-    });
+    <!-- INSPIRATION -->
+    <section class="page" id="page-inspiration">
+      <div class="page-header">
+        <h2 class="page-title">Inspiration</h2>
+        <p class="page-subtitle">Wisdom for your learning journey</p>
+      </div>
+      <div class="glass card" id="inspirationCard" style="margin-bottom:16px;"></div>
+      <button class="btn-secondary" id="newQuoteBtn"><svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> New Quote</button>
+    </section>
 
-    // إضافة مادة
-    document.getElementById("addSubjectBtn").addEventListener("click", () => {
-      document.getElementById("subjectName").value = "";
-      document.getElementById("subjectModal").classList.add("open");
-    });
+    <!-- SETTINGS -->
+    <section class="page" id="page-settings">
+      <div class="page-header">
+        <h2 class="page-title">Settings</h2>
+        <p class="page-subtitle">Preferences and data management</p>
+      </div>
+      <div class="glass card" style="margin-bottom:16px;">
+        <h3 style="margin-top:0; font-size:16px;">Timer Defaults</h3>
+        <div class="settings-item">
+          <div><div class="settings-label">Focus Duration</div><div class="settings-desc">Minutes</div></div>
+          <input type="number" class="settings-input" id="setFocus" value="25">
+        </div>
+        <div class="settings-item">
+          <div><div class="settings-label">Short Break</div><div class="settings-desc">Minutes</div></div>
+          <input type="number" class="settings-input" id="setShort" value="5">
+        </div>
+        <div class="settings-item">
+          <div><div class="settings-label">Long Break</div><div class="settings-desc">Minutes</div></div>
+          <input type="number" class="settings-input" id="setLong" value="15">
+        </div>
+        <button class="btn-primary" id="saveSettingsBtn" style="width:100%; margin-top:16px;">Save Settings</button>
+      </div>
+      <div class="glass card">
+        <h3 style="margin-top:0; font-size:16px;">Data Management</h3>
+        <div class="settings-item">
+          <div><div class="settings-label">Export Backup</div><div class="settings-desc">Save your data as JSON</div></div>
+          <button class="btn-ghost" id="exportBtn">Export</button>
+        </div>
+        <div class="settings-item">
+          <div><div class="settings-label">Clear Data</div><div class="settings-desc">Reset application</div></div>
+          <button class="btn-ghost" style="color:var(--danger);" id="clearBtn">Clear</button>
+        </div>
+      </div>
+    </section>
 
-    document.getElementById("saveSubjectBtn").addEventListener("click", () => {
-      const name = document.getElementById("subjectName").value.trim();
-      const color = document.getElementById("subjectColor").value;
-      if (!name) return;
-      this.state.subjects.push({ id: Date.now().toString(36), name, color });
-      this.save(); 
-      document.getElementById("subjectModal").classList.remove("open");
-      this.renderSubjects(); 
-      this.renderFocusSubjectPicker(); 
-      this.toast("Subject added");
-    });
+  </main>
+</div>
 
-    // إضافة مهمة
-    document.getElementById("taskForm").addEventListener("submit", (e) => {
-      e.preventDefault();
-      const text = document.getElementById("taskInput").value.trim();
-      if (!text) return;
-      this.state.tasks.push({ id: Date.now().toString(36), text, done: false });
-      document.getElementById("taskInput").value = "";
-      this.save(); this.renderTasks();
-    });
+<!-- MOBILE BOTTOM NAV -->
+<nav class="bottom-nav">
+  <button class="bottom-nav-item active" data-page="dashboard"><svg class="icon" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg><span>Home</span></button>
+  <button class="bottom-nav-item" data-page="focus"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span>Focus</span></button>
+  <button class="bottom-nav-item" data-page="tasks"><svg class="icon" viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg><span>Tasks</span></button>
+  <button class="bottom-nav-item" data-page="themes"><svg class="icon" viewBox="0 0 24 24"><circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/><circle cx="6.5" cy="12.5" r=".5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg><span>Themes</span></button>
+</nav>
 
-    // حفظ الإعدادات
-    document.getElementById("saveSettingsBtn").addEventListener("click", () => {
-      this.state.settings.focus = Number(document.getElementById("setFocus").value) || 25;
-      this.state.settings.short = Number(document.getElementById("setShort").value) || 5;
-      this.state.settings.long = Number(document.getElementById("setLong").value) || 15;
-      this.save(); 
-      Timer.reset(this.state.settings.focus); 
-      this.toast("Settings saved");
-    });
+<!-- MODALS -->
+<div class="modal-backdrop" id="durationModal">
+  <div class="modal">
+    <div class="modal-header"><h3>Set Duration</h3><button class="modal-close" data-close="durationModal"><svg class="icon icon-sm" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px;">
+      <div class="form-field"><label>Hours</label><input type="number" id="customHours" value="0" min="0" max="5"></div>
+      <div class="form-field"><label>Minutes</label><input type="number" id="customMinutes" value="25" min="0" max="59"></div>
+    </div>
+    <button class="btn-primary" id="confirmDuration" style="width:100%;">Confirm</button>
+  </div>
+</div>
 
-    // تصدير البيانات
-    document.getElementById("exportBtn").addEventListener("click", () => {
-      const payload = { ...this.state };
-      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
-      const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `qortex-backup.json`; a.click();
-      this.toast("Backup downloaded");
-    });
+<div class="modal-backdrop" id="subjectModal">
+  <div class="modal">
+    <div class="modal-header"><h3 id="subjectModalTitle">Add Subject</h3><button class="modal-close" data-close="subjectModal"><svg class="icon icon-sm" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div class="form-field"><label>Subject Name</label><input type="text" id="subjectName" maxlength="50"></div>
+    <div class="form-field"><label>Color</label><input type="color" id="subjectColor" value="#829D87" style="height:40px; padding:4px;"></div>
+    <button class="btn-primary" id="saveSubjectBtn" style="width:100%;">Save</button>
+  </div>
+</div>
 
-    // مسح البيانات
-    document.getElementById("clearBtn").addEventListener("click", () => {
-      if (!confirm("Are you sure? This will delete ALL your data.")) return;
-      localStorage.clear(); location.reload();
-    });
+<div class="toast-container" id="toastContainer"></div>
 
-    // تغيير الاقتباس
-    document.getElementById("newQuoteBtn").addEventListener("click", () => {
-      renderInspirationUI();
-    });
+<script>
+/* =========================================================
+   QORTEX v1.0 — PWA + Offline Ready
+   ========================================================= */
+const $ = (id) => document.getElementById(id);
+const $$ = (sel) => document.querySelectorAll(sel);
 
-    // الضغط على الثيمات
-    document.getElementById("themesGrid").addEventListener("click", (e) => {
-      const card = e.target.closest("[data-theme-id]");
-      if (card) {
-        handleThemeClick(card.dataset.themeId, this.state, {
-          save: () => this.save(),
-          renderThemes: () => renderThemesUI(this.state),
-          toast: (msg) => this.toast(msg)
-        });
-      }
-    });
+const STORAGE = { data: "qouraStudyData", settings: "qouraStudySettings", tasks: "qouraStudyTasks", subjects: "qortexSubjects", theme: "qortexTheme" };
 
-    // أزرار الـ Quick Actions
-    document.querySelectorAll(".quick-btn").forEach(btn => {
-      btn.addEventListener("click", () => {
-        if (btn.dataset.action === "start-focus") { 
-          document.querySelector('[data-page="focus"]').click(); 
-        }
-        if (btn.dataset.action === "add-subject") { 
-          document.getElementById("addSubjectBtn").click(); 
-        }
-        if (btn.dataset.action === "add-task") { 
-          document.querySelector('[data-page="tasks"]').click(); 
-          document.getElementById("taskInput").focus(); 
-        }
-      });
-    });
-  }
+const state = {
+  data: {},
+  settings: { focus: 25, short: 5, long: 15 },
+  tasks: [],
+  subjects: [],
+  theme: "natural-glass",
+  timer: { mode: "focus", totalSeconds: 1500, remainingSeconds: 1500, running: false, interval: null, subjectId: "" }
 };
 
-// تشغيل التطبيق
-document.addEventListener("DOMContentLoaded", () => App.init());
+// Helpers
+const today = () => new Date().toISOString().split('T')[0];
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
+const escapeHTML = (str) => String(str).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+function toast(msg) {
+  const t = document.createElement("div"); t.className = "toast"; t.textContent = msg;
+  $("toastContainer").appendChild(t); setTimeout(() => t.remove(), 3000);
+}
+
+function save() {
+  localStorage.setItem(STORAGE.data, JSON.stringify(state.data));
+  localStorage.setItem(STORAGE.settings, JSON.stringify(state.settings));
+  localStorage.setItem(STORAGE.tasks, JSON.stringify(state.tasks));
+  localStorage.setItem(STORAGE.subjects, JSON.stringify(state.subjects));
+  localStorage.setItem(STORAGE.theme, state.theme);
+}
+
+function load() {
+  state.data = JSON.parse(localStorage.getItem(STORAGE.data) || "{}");
+  state.settings = JSON.parse(localStorage.getItem(STORAGE.settings) || '{"focus":25,"short":5,"long":15}');
+  state.tasks = JSON.parse(localStorage.getItem(STORAGE.tasks) || "[]");
+  state.subjects = JSON.parse(localStorage.getItem(STORAGE.subjects) || "[]");
+  state.theme = localStorage.getItem(STORAGE.theme) || "natural-glass";
+  applyTheme(state.theme);
+}
+
+/* =========================================================
+   THEME SYSTEM
+   ========================================================= */
+const THEMES = [
+  { id: "natural-glass", name: "Natural Glass", bg: "#F5F6F2", surface: "#FFFFFF", accent: "#829D87" },
+  { id: "pure-light", name: "Pure Light", bg: "#FAFAFA", surface: "#FFFFFF", accent: "#333333" },
+  { id: "midnight-glass", name: "Midnight Glass", bg: "#0F1115", surface: "#1E2228", accent: "#A1B9A3" },
+  { id: "ocean-blue", name: "Ocean Blue", bg: "#F0F4F8", surface: "#FFFFFF", accent: "#4A80A8" },
+  { id: "lavender-mist", name: "Lavender Mist", bg: "#F6F4F9", surface: "#FFFFFF", accent: "#8672A8" },
+  { id: "warm-sand", name: "Warm Sand", bg: "#FAF8F5", surface: "#FFFFFF", accent: "#C29B70" },
+  { id: "graphite", name: "Graphite", bg: "#F0F0F0", surface: "#FFFFFF", accent: "#505050" },
+  { id: "sage-minimal", name: "Sage Minimal", bg: "#F3F6F2", surface: "#FFFFFF", accent: "#6C8C6C" }
+];
+
+function renderThemes() {
+  const grid = $("themesGrid");
+  grid.innerHTML = THEMES.map(t => `
+    <div class="theme-card ${state.theme === t.id ? 'active' : ''}" onclick="setTheme('${t.id}')">
+      <div class="theme-preview" style="--tp-bg: ${t.bg}; --tp-surface: ${t.surface}; --tp-accent: ${t.accent};">
+        <div class="tp-header"><div class="tp-dot"></div></div>
+        <div class="tp-body"><div class="tp-card"></div></div>
+      </div>
+      <div class="theme-name">${t.name}</div>
+    </div>
+  `).join("");
+}
+
+function setTheme(id) {
+  state.theme = id;
+  applyTheme(id);
+  save();
+  renderThemes();
+  toast("Theme applied");
+}
+
+function applyTheme(id) {
+  document.body.setAttribute("data-theme", id);
+}
+
+/* =========================================================
+   NAVIGATION
+   ========================================================= */
+function navigate(page) {
+  $$(".page").forEach(p => p.classList.remove("active"));
+  $(`page-${page}`).classList.add("active");
+  $$(".nav-item, .bottom-nav-item").forEach(n => n.classList.toggle("active", n.dataset.page === page));
+  window.scrollTo(0, 0);
+}
+
+$$(".nav-item, .bottom-nav-item").forEach(el => {
+  el.addEventListener("click", () => navigate(el.dataset.page));
+});
+
+/* =========================================================
+   DASHBOARD
+   ========================================================= */
+function renderDashboard() {
+  const hour = new Date().getHours();
+  const greet = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
+  $("greetingText").textContent = `${greet} 👋`;
+  $("currentDate").textContent = new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" });
+
+  const d = state.data[today()] || { minutes: 0, sessions: 0 };
+  $("todayMinutes").textContent = d.minutes || 0;
+  $("dailyGoalPct").textContent = Math.min(100, Math.round(((d.minutes || 0) / 120) * 100));
+  $("activeSubjectsCount").textContent = state.subjects.length;
+
+  // Streak
+  let streak = 0; let curDate = new Date();
+  while (true) {
+    const k = curDate.toISOString().split('T')[0];
+    if (state.data[k] && state.data[k].minutes > 0) { streak++; curDate.setDate(curDate.getDate() - 1); }
+    else { if (streak === 0 && k === today()) { curDate.setDate(curDate.getDate() - 1); continue; } break; }
+  }
+  $("streakCount").textContent = streak;
+
+  // Inspiration
+  $("dashboardInspiration").innerHTML = `
+    <p style="font-size:16px; font-weight:500; line-height:1.6; margin:0 0 12px;">"The beautiful thing about learning is that no one can take it away from you."</p>
+    <p style="font-size:13px; color:var(--muted); margin:0;">— B.B. King</p>
+  `;
+}
+
+/* =========================================================
+   FOCUS TIMER
+   ========================================================= */
+function renderFocus() {
+  const picker = $("focusSubject");
+  picker.innerHTML = `<option value="">General Focus</option>` + state.subjects.map(s => `<option value="${s.id}">${escapeHTML(s.name)}</option>`).join("");
+  updateTimerDisplay();
+}
+
+function updateTimerDisplay() {
+  const t = state.timer;
+  const m = Math.floor(t.remainingSeconds / 60);
+  const s = t.remainingSeconds % 60;
+  $("timerDisplay").textContent = `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+  $("startBtn").innerHTML = t.running 
+    ? `<svg class="icon icon-sm" viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg> Pause`
+    : `<svg class="icon icon-sm" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg> Start`;
+}
+
+function startTimer() {
+  const t = state.timer;
+  if (t.running) {
+    clearInterval(t.interval); t.running = false; updateTimerDisplay(); return;
+  }
+  t.running = true;
+  t.interval = setInterval(() => {
+    if (t.remainingSeconds > 0) { t.remainingSeconds--; updateTimerDisplay(); }
+    else {
+      clearInterval(t.interval); t.running = false; updateTimerDisplay();
+      toast("Session Complete! Great job.");
+      if (!state.data[today()]) state.data[today()] = { minutes: 0, sessions: 0 };
+      state.data[today()].minutes += Math.round(t.totalSeconds / 60);
+      state.data[today()].sessions += 1;
+      save();
+      renderDashboard();
+      resetTimer();
+    }
+  }, 1000);
+}
+
+function resetTimer() {
+  clearInterval(state.timer.interval);
+  state.timer.running = false;
+  state.timer.remainingSeconds = state.settings.focus * 60;
+  state.timer.totalSeconds = state.settings.focus * 60;
+  updateTimerDisplay();
+}
+
+$("startBtn").addEventListener("click", startTimer);
+$("resetBtn").addEventListener("click", resetTimer);
+
+// Duration Modal
+$("timerDisplay").addEventListener("click", () => {
+  $("customHours").value = Math.floor(state.timer.totalSeconds / 3600);
+  $("customMinutes").value = Math.floor((state.timer.totalSeconds % 3600) / 60);
+  $("durationModal").classList.add("open");
+});
+
+$("confirmDuration").addEventListener("click", () => {
+  const h = Number($("customHours").value) || 0;
+  const m = Number($("customMinutes").value) || 0;
+  const total = (h * 60) + m;
+  if (total < 1) { toast("Minimum 1 minute"); return; }
+  state.timer.totalSeconds = total * 60;
+  state.timer.remainingSeconds = total * 60;
+  updateTimerDisplay();
+  $("durationModal").classList.remove("open");
+});
+
+/* =========================================================
+   SUBJECTS
+   ========================================================= */
+function renderSubjects() {
+  const list = $("subjectsList");
+  if (!state.subjects.length) {
+    list.innerHTML = `<div class="empty-state"><svg class="icon icon-xl" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg><br>No subjects yet. Add one to get started.</div>`;
+    return;
+  }
+  list.innerHTML = state.subjects.map(s => `
+    <div class="glass card" style="display:flex; align-items:center; gap:16px;">
+      <div style="width:40px; height:40px; border-radius:12px; background:${s.color}; display:grid; place-items:center; color:white; font-weight:700;">${s.name.charAt(0).toUpperCase()}</div>
+      <div style="flex:1;">
+        <div style="font-weight:600; font-size:16px;">${escapeHTML(s.name)}</div>
+      </div>
+      <button onclick="deleteSubject('${s.id}')" style="color:var(--muted);"><svg class="icon" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+    </div>
+  `).join("");
+}
+
+window.deleteSubject = (id) => {
+  if (!confirm("Delete this subject?")) return;
+  state.subjects = state.subjects.filter(s => s.id !== id);
+  save(); renderSubjects(); renderFocus();
+};
+
+$("addSubjectBtn").addEventListener("click", () => {
+  $("subjectName").value = "";
+  $("subjectModal").classList.add("open");
+});
+
+$("saveSubjectBtn").addEventListener("click", () => {
+  const name = $("subjectName").value.trim();
+  const color = $("subjectColor").value;
+  if (!name) return;
+  state.subjects.push({ id: uid(), name, color });
+  save(); $("subjectModal").classList.remove("open");
+  renderSubjects(); renderFocus(); toast("Subject added");
+});
+
+/* =========================================================
+   TASKS
+   ========================================================= */
+function renderTasks() {
+  const list = $("taskList");
+  if (!state.tasks.length) {
+    list.innerHTML = `<div class="empty-state">No tasks yet.</div>`;
+    return;
+  }
+  list.innerHTML = state.tasks.map(t => `
+    <div style="display:flex; align-items:center; gap:12px; padding:12px 0; border-bottom:1px solid var(--border);">
+      <input type="checkbox" ${t.done ? 'checked' : ''} onchange="toggleTask('${t.id}')" style="width:20px; height:20px; accent-color:var(--accent);">
+      <span style="flex:1; font-size:15px; ${t.done ? 'text-decoration:line-through; color:var(--muted);' : ''}">${escapeHTML(t.text)}</span>
+      <button onclick="deleteTask('${t.id}')" style="color:var(--muted);"><svg class="icon icon-sm" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+  `).join("");
+}
+
+window.toggleTask = (id) => {
+  const t = state.tasks.find(x => x.id === id);
+  if (t) { t.done = !t.done; save(); renderTasks(); }
+};
+window.deleteTask = (id) => {
+  state.tasks = state.tasks.filter(x => x.id !== id);
+  save(); renderTasks();
+};
+
+$("taskForm").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const text = $("taskInput").value.trim();
+  if (!text) return;
+  state.tasks.push({ id: uid(), text, done: false });
+  $("taskInput").value = "";
+  save(); renderTasks();
+});
+
+/* =========================================================
+   INSPIRATION (English Quotes)
+   ========================================================= */
+const QUOTES = [
+  { text: "The beautiful thing about learning is that no one can take it away from you.", author: "B.B. King" },
+  { text: "An investment in knowledge pays the best interest.", author: "Benjamin Franklin" },
+  { text: "Live as if you were to die tomorrow. Learn as if you were to live forever.", author: "Mahatma Gandhi" },
+  { text: "The more that you read, the more things you will know. The more that you learn, the more places you'll go.", author: "Dr. Seuss" },
+  { text: "Education is the most powerful weapon which you can use to change the world.", author: "Nelson Mandela" },
+  { text: "Genius is one percent inspiration and ninety-nine percent perspiration.", author: "Thomas Edison" },
+  { text: "It always seems impossible until it's done.", author: "Nelson Mandela" },
+  { text: "Success is the sum of small efforts, repeated day in and day out.", author: "Robert Collier" }
+];
+
+function renderInspiration() {
+  const q = QUOTES[Math.floor(Math.random() * QUOTES.length)];
+  $("inspirationCard").innerHTML = `
+    <p style="font-size:18px; font-weight:500; line-height:1.7; margin:0 0 16px;">"${q.text}"</p>
+    <div style="font-size:14px; color:var(--muted); font-weight:600;">— ${q.author}</div>
+  `;
+}
+
+$("newQuoteBtn").addEventListener("click", renderInspiration);
+
+/* =========================================================
+   SETTINGS
+   ========================================================= */
+$("saveSettingsBtn").addEventListener("click", () => {
+  state.settings.focus = Number($("setFocus").value) || 25;
+  state.settings.short = Number($("setShort").value) || 5;
+  state.settings.long = Number($("setLong").value) || 15;
+  save(); resetTimer(); toast("Settings saved");
+});
+
+$("exportBtn").addEventListener("click", () => {
+  const payload = { data: state.data, settings: state.settings, tasks: state.tasks, subjects: state.subjects, theme: state.theme };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `qortex-backup.json`; a.click();
+  toast("Backup downloaded");
+});
+
+$("clearBtn").addEventListener("click", () => {
+  if (!confirm("Are you sure? This will delete ALL your data.")) return;
+  localStorage.clear(); location.reload();
+});
+
+/* =========================================================
+   MODALS & GLOBAL CLICKS
+   ========================================================= */
+$$("[data-close]").forEach(btn => {
+  btn.addEventListener("click", () => $(btn.dataset.close).classList.remove("open"));
+});
+
+$$(".quick-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    if (btn.dataset.action === "start-focus") { navigate("focus"); }
+    if (btn.dataset.action === "add-subject") { $("addSubjectBtn").click(); }
+    if (btn.dataset.action === "add-task") { navigate("tasks"); $("taskInput").focus(); }
+    if (btn.dataset.action === "view-analytics") { navigate("analytics"); }
+  });
+});
+
+/* =========================================================
+   PWA SETUP (Manifest + Service Worker)
+   ========================================================= */
+function setupPWA() {
+  // 1. Manifest Injection
+  const manifest = {
+    name: "Qortex",
+    short_name: "Qortex",
+    description: "A modern study planner and productivity app.",
+    start_url: "./",
+    scope: "./",
+    display: "standalone",
+    orientation: "portrait",
+    theme_color: "#829d87",
+    background_color: "#f5f6f2",
+    icons: [
+      { src: "https://i.postimg.cc/7Z81NTtw/image.png", sizes: "192x192", type: "image/png", purpose: "any maskable" },
+      { src: "https://i.postimg.cc/7Z81NTtw/image.png", sizes: "512x512", type: "image/png", purpose: "any maskable" }
+    ]
+  };
+  const manifestBlob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
+  const manifestURL = URL.createObjectURL(manifestBlob);
+  
+  let manifestLink = document.querySelector('link[rel="manifest"]');
+  if (!manifestLink) {
+    manifestLink = document.createElement('link');
+    manifestLink.rel = 'manifest';
+    document.head.appendChild(manifestLink);
+  }
+  manifestLink.href = manifestURL;
+
+  // 2. Service Worker Registration
+  if ('serviceWorker' in navigator) {
+    const swCode = `
+      const CACHE_NAME = 'qortex-v1';
+      const ASSETS = ['./', './index.html'];
+      
+      self.addEventListener('install', (e) => {
+        self.skipWaiting();
+        e.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS)));
+      });
+      
+      self.addEventListener('activate', (e) => {
+        e.waitUntil(caches.keys().then((keys) => {
+          return Promise.all(keys.map((key) => {
+            if (key !== CACHE_NAME) return caches.delete(key);
+          }));
+        }).then(() => self.clients.claim()));
+      });
+      
+      self.addEventListener('fetch', (e) => {
+        e.respondWith(caches.match(e.request).then((response) => response || fetch(e.request)));
+      });
+    `;
+    const swBlob = new Blob([swCode], { type: 'application/javascript' });
+    const swURL = URL.createObjectURL(swBlob);
+    
+    navigator.serviceWorker.register(swURL)
+      .then(() => console.log('Service Worker Registered'))
+      .catch(err => console.log('SW Registration Failed', err));
+  }
+}
+
+/* =========================================================
+   INIT APP & ICON INJECTION
+   ========================================================= */
+function init() {
+  load();
+  renderThemes();
+  renderDashboard();
+  renderFocus();
+  renderSubjects();
+  renderTasks();
+  renderInspiration();
+  $("setFocus").value = state.settings.focus;
+  $("setShort").value = state.settings.short;
+  $("setLong").value = state.settings.long;
+
+  // ✅ اللوجو الخاص بك
+  const customIconUrl = "https://i.postimg.cc/7Z81NTtw/image.png";
+  
+  if (customIconUrl) {
+    $("brandLogoContainer").innerHTML = `<img src="${customIconUrl}" alt="Logo">`;
+    document.querySelector('link[rel="apple-touch-icon"]').href = customIconUrl;
+  }
+
+  // تشغيل إعدادات PWA
+  setupPWA();
+}
+
+init();
+</script>
+</body>
+</html>
