@@ -236,3 +236,179 @@ const App = {
 
 // تشغيل التطبيق
 document.addEventListener("DOMContentLoaded", () => App.init());
+// ==========================================
+// Analytics Functions
+// ==========================================
+renderAnalytics() {
+  const data = this.state.data; // البيانات بتاعتك { "2023-10-25": { minutes: 120, sessions: 4 }, ... }
+  const today = new Date();
+  const todayStr = today.toISOString().split('T')[0];
+
+  // 1. حساب الإحصائيات السريعة
+  let totalMinutes = 0;
+  let totalSessions = 0;
+  let weekMinutes = 0;
+  let monthMinutes = 0;
+
+  // حساب بداية الأسبوع (السبت)
+  const startOfWeek = new Date(today);
+  startOfWeek.setDate(today.getDate() - today.getDay()); // 0 = Sunday
+  
+  // حساب بداية الشهر
+  const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+
+  Object.keys(data).forEach(dateStr => {
+    const dayData = data[dateStr];
+    const dateObj = new Date(dateStr);
+    
+    totalMinutes += dayData.minutes || 0;
+    totalSessions += dayData.sessions || 0;
+
+    if (dateObj >= startOfWeek) weekMinutes += (dayData.minutes || 0);
+    if (dateObj >= startOfMonth) monthMinutes += (dayData.minutes || 0);
+  });
+
+  document.getElementById("totalFocusAllTime").textContent = (totalMinutes / 60).toFixed(1);
+  document.getElementById("totalFocusMonth").textContent = (monthMinutes / 60).toFixed(1);
+  document.getElementById("totalFocusWeek").textContent = (weekMinutes / 60).toFixed(1);
+  document.getElementById("avgSession").textContent = totalSessions ? Math.round(totalMinutes / totalSessions) : 0;
+
+  // 2. رسم الخط البياني (Chart.js) لآخر 7 أيام
+  this.renderChart(data);
+  
+  // 3. رسم التقويم
+  this.renderCalendar(data);
+},
+
+renderChart(data) {
+  const ctx = document.getElementById('focusChart');
+  if (!ctx) return;
+
+  // تجهيز بيانات آخر 7 أيام
+  const labels = [];
+  const chartData = [];
+  
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const dateStr = d.toISOString().split('T')[0];
+    
+    // اسم اليوم (Mon, Tue, ...)
+    labels.push(d.toLocaleDateString('en-US', { weekday: 'short' }));
+    // الدقايق أو صفر
+    chartData.push(data[dateStr] ? data[dateStr].minutes : 0);
+  }
+
+  // لو في تشارت قديم امسحه عشان نرسم واحد جديد
+  if (window.myFocusChart) window.myFocusChart.destroy();
+
+  window.myFocusChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Minutes Focused',
+        data: chartData,
+        borderColor: getComputedStyle(document.body).getPropertyValue('--accent').trim(),
+        backgroundColor: 'rgba(130, 157, 135, 0.1)',
+        borderWidth: 3,
+        tension: 0.4, // ده اللي بيخلي الخط متكسر (Curve)
+        fill: true,
+        pointBackgroundColor: getComputedStyle(document.body).getPropertyValue('--accent').trim(),
+        pointBorderColor: '#fff',
+        pointBorderWidth: 2,
+        pointRadius: 4,
+        pointHoverRadius: 6
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: 'rgba(0,0,0,0.8)',
+          padding: 12,
+          displayColors: false,
+          callbacks: {
+            label: function(context) { return context.parsed.y + ' minutes'; }
+          }
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          grid: { color: 'rgba(0,0,0,0.05)', drawBorder: false },
+          ticks: { color: '#87918A' }
+        },
+        x: {
+          grid: { display: false, drawBorder: false },
+          ticks: { color: '#87918A' }
+        }
+      }
+    }
+  });
+},
+
+renderCalendar(data) {
+  const container = document.getElementById("calendarHeatmap");
+  if (!container) return;
+
+  container.innerHTML = ''; // مسح أي بيانات قديمة
+
+  // أسماء أيام الأسبوع
+  const weekDays = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+  weekDays.forEach(day => {
+    container.innerHTML += `<div style="font-size: 11px; font-weight: bold; color: var(--muted); margin-bottom: 4px;">${day}</div>`;
+  });
+
+  // نبدأ من أول الشهر الحالي
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = today.getMonth();
+  
+  const firstDay = new Date(year, month, 1);
+  const lastDay = new Date(year, month + 1, 0);
+  const totalDays = lastDay.getDate();
+  const startDayOfWeek = firstDay.getDay(); // 0 = Sunday
+
+  // مسافات فاضية قبل أول يوم في الشهر
+  for (let i = 0; i < startDayOfWeek; i++) {
+    container.innerHTML += `<div></div>`;
+  }
+
+  // رسم الأيام
+  const todayStr = today.toISOString().split('T')[0];
+
+  for (let day = 1; day <= totalDays; day++) {
+    const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    const minutes = data[dateStr] ? data[dateStr].minutes : 0;
+    
+    let bgColor = 'rgba(130, 157, 135, 0.05)'; // فاضي
+    let textColor = 'var(--muted)';
+    
+    if (minutes > 0 && minutes <= 30) bgColor = 'rgba(130, 157, 135, 0.3)';
+    else if (minutes > 30 && minutes <= 60) bgColor = 'rgba(130, 157, 135, 0.6)';
+    else if (minutes > 60) { bgColor = 'var(--accent)'; textColor = '#fff'; }
+
+    // تمييز اليوم الحالي بإطار
+    const isToday = dateStr === todayStr ? 'outline: 2px solid var(--text); outline-offset: -2px;' : '';
+
+    container.innerHTML += `
+      <div style="
+        aspect-ratio: 1; 
+        border-radius: 4px; 
+        background: ${bgColor}; 
+        color: ${textColor}; 
+        display: grid; 
+        place-items: center; 
+        font-size: 11px; 
+        font-weight: 600;
+        ${isToday}
+        transition: all 0.2s;
+      " title="${minutes} mins focused">
+        ${day}
+      </div>
+    `;
+  }
+}, 
